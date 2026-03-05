@@ -1,0 +1,54 @@
+"use client";
+
+import type { KeywordGapData } from "@/lib/types";
+import { vi } from "@/i18n/vi";
+
+export default function GapMatrix({ gaps }: { gaps: KeywordGapData[] }) {
+  if (!gaps.length) return null;
+
+  const allCompetitors = new Set<string>();
+  gaps.forEach((g) => {
+    if (g.competitor_ranks) {
+      Object.keys(g.competitor_ranks).forEach((c) => allCompetitors.add(c));
+    }
+  });
+  const competitors = Array.from(allCompetitors);
+
+  return (
+    <div className="card">
+      <h3 className="font-semibold text-gray-900 mb-4">{vi.competitor.gaps}</h3>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-gray-200">
+              <th className="text-left py-2 px-3 text-gray-600 font-medium">Keyword</th>
+              <th className="text-center py-2 px-3 text-gray-600 font-medium">Ban</th>
+              {competitors.map((c) => (
+                <th key={c} className="text-center py-2 px-3 text-gray-600 font-medium">{c}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {gaps.map((gap) => (
+              <tr key={gap.id} className="border-b border-gray-100">
+                <td className="py-2 px-3 font-medium">{gap.keyword}</td>
+                <td className="py-2 px-3 text-center">
+                  {gap.target_rank ? (
+                    <span className="font-mono">{gap.target_rank}</span>
+                  ) : (
+                    <span className="text-red-500">-</span>
+                  )}
+                </td>
+                {competitors.map((c) => (
+                  <td key={c} className="py-2 px-3 text-center font-mono">
+                    {gap.competitor_ranks?.[c] ?? "-"}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
