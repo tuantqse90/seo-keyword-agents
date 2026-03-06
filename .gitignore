@@ -29,6 +29,12 @@ Thumbs.db
 # Docker
 pgdata/
 
+# Backups
+backups/
+
+# SSL certs
+nginx/ssl/
+
 # Generated
 *.pdf
 exports/

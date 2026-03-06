@@ -1,3 +1,6 @@
+import logging
+import secrets
+
 from pydantic_settings import BaseSettings
 
 
@@ -22,12 +25,18 @@ class Settings(BaseSettings):
     smtp_user: str = ""
     smtp_password: str = ""
     smtp_from: str = "noreply@seo-dashboard.local"
-    notify_email: str = ""  # recipient email for notifications
+    notify_email: str = ""
 
     # Auth
-    jwt_secret: str = "change-me-in-production"
+    jwt_secret: str = ""
     jwt_algorithm: str = "HS256"
     jwt_expire_hours: int = 72
+
+    # CORS — comma-separated origins, e.g. "https://example.com,https://www.example.com"
+    cors_origins: str = "http://localhost:3000"
+
+    # Environment: "development" or "production"
+    environment: str = "development"
 
     backend_host: str = "0.0.0.0"
     backend_port: int = 8000
@@ -38,5 +47,25 @@ class Settings(BaseSettings):
         "extra": "ignore",
     }
 
+    def get_cors_origins(self) -> list[str]:
+        return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
 
 settings = Settings()
+
+# JWT secret validation
+logger = logging.getLogger("app.config")
+if not settings.jwt_secret:
+    if settings.environment == "production":
+        raise RuntimeError("JWT_SECRET must be set in production! Generate one with: python -c \"import secrets; print(secrets.token_urlsafe(64))\"")
+    settings.jwt_secret = secrets.token_urlsafe(32)
+    logger.warning("JWT_SECRET not set — generated random secret (will change on restart)")
+elif settings.jwt_secret == "change-me-in-production" and settings.environment == "production":
+    raise RuntimeError("JWT_SECRET is still the default value! Set a strong secret for production.")
+
+# LLM key validation
+if settings.environment == "production":
+    if settings.llm_provider == "anthropic" and not settings.anthropic_api_key:
+        logger.warning("ANTHROPIC_API_KEY not set but LLM_PROVIDER=anthropic")
+    if settings.llm_provider == "deepseek" and not settings.deepseek_api_key:
+        logger.warning("DEEPSEEK_API_KEY not set but LLM_PROVIDER=deepseek")

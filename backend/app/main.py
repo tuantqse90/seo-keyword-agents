@@ -9,6 +9,7 @@ from sqlalchemy import update, text
 from starlette.requests import Request
 from starlette.responses import Response
 
+from app.config import settings
 from app.database import async_session, engine
 from app.models.report import Report, ReportStatus
 from app.routers import projects, keywords, competitor, content, audit, workflows, reports, schedules, auth
@@ -41,10 +42,10 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="SEO Dashboard API", version="0.1.0", lifespan=lifespan)
 
-# CORS middleware
+# CORS middleware — origins configurable via CORS_ORIGINS env var
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=settings.get_cors_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
