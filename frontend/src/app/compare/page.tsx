@@ -50,7 +50,7 @@ export default function ComparePage() {
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
     >
       <option value="">-- Chon bao cao --</option>
       {reports
@@ -66,7 +66,7 @@ export default function ComparePage() {
   const ReportPanel = ({ report }: { report: Report | null }) => {
     if (!report) {
       return (
-        <div className="card text-center text-gray-400 py-12">
+        <div className="card text-center text-gray-400 dark:text-gray-500 py-12">
           Chon bao cao de so sanh
         </div>
       );
@@ -77,15 +77,15 @@ export default function ComparePage() {
           <span className={`text-xs px-2 py-1 rounded-full font-medium ${MODULE_COLORS[report.module]}`}>
             {report.module}
           </span>
-          <span className="text-sm font-medium text-gray-900 flex-1">{report.input_query}</span>
-          <span className="text-xs text-gray-400">
+          <span className="text-sm font-medium text-gray-900 dark:text-gray-100 flex-1">{report.input_query}</span>
+          <span className="text-xs text-gray-400 dark:text-gray-500">
             {new Date(report.created_at).toLocaleDateString("vi-VN")}
           </span>
         </div>
         {report.summary && (
-          <p className="text-sm text-gray-600 mb-4 pb-4 border-b border-gray-100">{report.summary}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 pb-4 border-b border-gray-100 dark:border-gray-700">{report.summary}</p>
         )}
-        <div className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-table:text-sm overflow-auto max-h-[600px]">
+        <div className="prose prose-sm dark:prose-invert max-w-none prose-headings:text-gray-900 dark:prose-headings:text-gray-100 prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-table:text-sm overflow-auto max-h-[600px]">
           <ReactMarkdown>{report.raw_markdown || ""}</ReactMarkdown>
         </div>
       </div>
@@ -98,11 +98,11 @@ export default function ComparePage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Bao cao 1</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Bao cao 1</label>
           <ReportSelector value={leftId} onChange={setLeftId} excludeId={rightId} />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Bao cao 2</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Bao cao 2</label>
           <ReportSelector value={rightId} onChange={setRightId} excludeId={leftId} />
         </div>
       </div>
@@ -125,14 +125,14 @@ function ComparisonSummary({ left, right }: { left: Report; right: Report }) {
   const newer = leftDate > rightDate ? "Bao cao 1" : "Bao cao 2";
 
   return (
-    <div className="card bg-blue-50 border-blue-200 mb-6">
+    <div className="card bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700 mb-6">
       <div className="flex items-center gap-2 mb-2">
         <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
         </svg>
-        <h3 className="font-semibold text-blue-900">So sanh</h3>
+        <h3 className="font-semibold text-blue-900 dark:text-blue-200">So sanh</h3>
       </div>
-      <div className="text-sm text-blue-800 space-y-1">
+      <div className="text-sm text-blue-800 dark:text-blue-300 space-y-1">
         <p>Module: <span className="font-medium">{left.module}</span></p>
         <p>Query 1: <span className="font-medium">{left.input_query}</span></p>
         <p>Query 2: <span className="font-medium">{right.input_query}</span></p>

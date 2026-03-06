@@ -28,13 +28,13 @@ export default function ScoreCard({ result }: { result: AuditResultData }) {
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span className={`text-2xl font-bold ${color}`}>{score}</span>
-          <span className="text-xs text-gray-400">/100</span>
+          <span className="text-xs text-gray-400 dark:text-gray-500">/100</span>
         </div>
       </div>
 
       <div>
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-xl font-bold text-gray-900">{vi.audit.grade}:</span>
+          <span className="text-xl font-bold text-gray-900 dark:text-gray-100">{vi.audit.grade}:</span>
           <span className={`text-2xl font-bold ${color}`}>{result.letter_grade || "N/A"}</span>
         </div>
         <div className="flex gap-4 text-sm">

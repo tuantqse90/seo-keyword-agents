@@ -1,164 +1,238 @@
-# SEO Keyword Agents
+# SEO Dashboard
 
-CLI-based SEO intelligence tool powered by Claude. Provides keyword research, competitor analysis, content briefs, and on-page audits — all from your terminal.
+Full-stack SEO intelligence platform with real-time AI analysis streaming. Built with Next.js 14, FastAPI, and PostgreSQL.
 
 ## Features
 
-| Module | Command | Description |
-|--------|---------|-------------|
-| Keyword Research | `/keywords <url_or_topic>` | 15-20 keyword suggestions with volume, difficulty, intent, CPC, and opportunity scores |
-| Competitor Analysis | `/competitor <url>` | Identify competitors, keyword gaps, content gaps, strategic recommendations |
-| Content Brief | `/content <keyword>` | Production-ready brief with outline, LSI keywords, E-E-A-T signals |
-| On-Page Audit | `/audit <url>` | SEO score (0-100), categorized issues, quick wins, technical checklist |
+- **4 SEO Modules** — Keyword Research, Competitor Analysis, Content Brief, On-Page Audit
+- **3 Combined Workflows** — Full Report, Strategy, Quick Fix
+- **Real-time Streaming** — SSE streaming of AI analysis results
+- **Dual LLM Support** — Anthropic Claude + DeepSeek
+- **Vietnamese UI** — Full Vietnamese interface
+- **Dark Mode** — Toggle with persistence
+- **Mobile Responsive** — Collapsible sidebar, adaptive layouts
+- **JWT Authentication** — Register/login with bcrypt password hashing
+- **Scheduled Analysis** — Cron-like recurring SEO audits with email notifications
+- **Report Comparison** — Side-by-side report diff view
+- **Full-text Search** — Search across all reports (Ctrl+K)
+- **Dashboard Charts** — Recharts-powered analytics (bar + pie charts)
+- **CSV/PDF Export** — Download reports in multiple formats
+- **Error Recovery** — Auto-recover stuck reports on server restart + retry UI
 
-### Combined Workflows
+## Architecture
 
-| Workflow | Command | What it does |
-|----------|---------|--------------|
-| Full Report | `/full <url>` | All 4 modules sequentially |
-| Strategy | `/strategy <url>` | Keywords + Competitor + Content brief for top opportunity |
-| Quick Fix | `/fix <url>` | Audit + Quick wins with implementation code |
+```
+Browser (Next.js 14 + Tailwind CSS)
+    |  HTTP / SSE
+FastAPI Backend (Python 3.11+)
+    |  Anthropic SDK / OpenAI SDK
+LLM API (Claude / DeepSeek)
+    |
+PostgreSQL 16 (10 tables)
+```
 
-## Prerequisites
+## Tech Stack
 
-- [Claude CLI](https://docs.anthropic.com/en/docs/claude-cli) installed and authenticated
-- Active Anthropic API key or Claude Pro/Max subscription
+| Layer | Technology |
+|-------|-----------|
+| Frontend | Next.js 14 (App Router), Tailwind CSS, Recharts, react-markdown |
+| Backend | FastAPI, SQLAlchemy 2.0 (async), Alembic, Pydantic |
+| AI | Anthropic SDK, OpenAI SDK (DeepSeek-compatible) |
+| Database | PostgreSQL 16, asyncpg |
+| Auth | JWT (PyJWT), bcrypt (passlib) |
+| Export | weasyprint (PDF), csv module |
 
-## Installation
+## Quick Start
 
-### Quick Setup
+### Prerequisites
+
+- Python 3.11+
+- Node.js 18+
+- PostgreSQL 16
+
+### 1. Clone & Setup
 
 ```bash
-git clone <repo-url> seo-keyword-agents
+git clone https://github.com/tuantqse90/seo-keyword-agents.git
 cd seo-keyword-agents
-chmod +x setup.sh
-./setup.sh
+cp .env.example .env
 ```
 
-### Manual Setup
+### 2. Configure `.env`
+
+```env
+DATABASE_URL=postgresql+asyncpg://seo_user:seo_password@localhost:5432/seo_dashboard
+
+# Choose your LLM provider
+LLM_PROVIDER=deepseek          # or "anthropic"
+DEEPSEEK_API_KEY=sk-xxxxx      # if using DeepSeek
+ANTHROPIC_API_KEY=sk-ant-xxxxx # if using Anthropic
+
+JWT_SECRET=your-secret-key-here
+```
+
+### 3. Database Setup
 
 ```bash
-# Option 1: Set as system prompt
-claude config set systemPrompt "$(cat seo-agent-prompt.txt)"
+# Option A: Docker
+docker compose up -d
 
-# Option 2: Use inline per session
-claude --system-prompt "$(cat seo-agent-prompt.txt)"
-
-# Option 3: Create a shell alias
-echo 'alias seo='\''claude --system-prompt "$(cat ~/path/to/seo-agent-prompt.txt)"'\''' >> ~/.zshrc
-source ~/.zshrc
+# Option B: Local PostgreSQL
+createuser seo_user
+createdb -O seo_user seo_dashboard
 ```
 
-## Usage
-
-### Keyword Research
+### 4. Backend
 
 ```bash
-seo "/keywords nullshift.sh"
-seo "/keywords 'best AI tools 2026'"
-seo "/keywords 'thiet ke web da nang'"
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+
+# Run migrations
+alembic upgrade head
+
+# Start server
+uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-Output includes:
-- Keyword table organized by cluster (head terms, long-tail, question-based)
-- Golden keywords highlighted (high volume + low difficulty + commercial intent)
-- Content silo strategy suggestions
-
-### Competitor Analysis
+### 5. Frontend
 
 ```bash
-seo "/competitor nullshift.sh"
-seo "/competitor example.com"
+cd frontend
+npm install
+npm run dev
 ```
 
-Output includes:
-- 3-5 competitor cards with traffic, DA, top keywords
-- Keyword gap matrix
-- Content gap analysis
-- Prioritized action items (impact vs effort)
-
-### Content Brief
-
-```bash
-seo "/content 'privacy-first AI agent'"
-seo "/content 'best CRM software' --url example.com"
-```
-
-Output includes:
-- Title tag + meta description (optimized length)
-- Full H2/H3 content outline
-- 15-20 LSI/semantic keywords
-- Featured snippet optimization strategy
-- E-E-A-T signal recommendations
-
-### On-Page Audit
-
-```bash
-seo "/audit example.com"
-seo "/audit nullshift.sh"
-```
-
-Output includes:
-- SEO score (0-100) with letter grade
-- Issues by severity (Critical / Warning / Info)
-- Top 5 quick wins
-- Technical checklist (robots.txt, sitemap, canonical, schema)
-
-### Combined Workflows
-
-```bash
-# Full comprehensive report
-seo "/full nullshift.sh"
-
-# Strategy: keywords + competitor + content brief
-seo "/strategy example.com"
-
-# Quick fixes with code snippets
-seo "/fix example.com"
-```
-
-## Vietnamese Market Support
-
-When analyzing Vietnamese websites or topics, the agent automatically:
-- Considers Google.com.vn ranking factors
-- Adapts to Vietnamese search behavior patterns
-- Includes local SEO factors
-- Handles Vietnamese diacritics and keyword variations
-
-```bash
-seo "/keywords 'thiet ke website'"
-seo "/audit tiki.vn"
-seo "/full shopee.vn"
-```
-
-## Output Format
-
-All outputs use clean markdown optimized for terminal readability:
-- Tables for structured data (keywords, competitors)
-- Headers and bullet points for reports
-- Code snippets for technical fixes
-- Severity indicators for audit issues
+Open **http://localhost:3000** — register an account and start analyzing!
 
 ## Project Structure
 
 ```
 seo-keyword-agents/
-├── README.md                  # This file
-├── CLAUDE.md                  # Claude Code project rules
-├── seo-agent-prompt.md        # Prompt documentation (source)
-├── seo-agent-prompt.txt       # Clean prompt file (for CLI use)
-├── setup.sh                   # Installation script
-└── docs/
-    └── examples.md            # Example outputs for each module
+├── backend/
+│   ├── app/
+│   │   ├── main.py              # FastAPI entry + lifespan
+│   │   ├── config.py            # Pydantic settings
+│   │   ├── database.py          # SQLAlchemy async engine
+│   │   ├── models/              # 10 SQLAlchemy models
+│   │   │   ├── report.py        # Reports (core)
+│   │   │   ├── keyword.py       # Keywords with clusters
+│   │   │   ├── competitor.py    # Competitors + keyword gaps
+│   │   │   ├── content_brief.py # Content briefs
+│   │   │   ├── audit.py         # Audit results + issues
+│   │   │   ├── project.py       # Projects
+│   │   │   ├── schedule.py      # Scheduled analyses
+│   │   │   └── user.py          # User auth
+│   │   ├── routers/             # 9 API routers
+│   │   │   ├── keywords.py      # POST /analyze + SSE stream
+│   │   │   ├── competitor.py
+│   │   │   ├── content.py
+│   │   │   ├── audit.py
+│   │   │   ├── workflows.py     # Combined workflows
+│   │   │   ├── reports.py       # CRUD + stats + search + export
+│   │   │   ├── schedules.py     # Schedule CRUD
+│   │   │   ├── auth.py          # Register/login/me
+│   │   │   └── projects.py      # Project CRUD
+│   │   └── services/
+│   │       ├── claude_client.py  # Dual LLM streaming client
+│   │       ├── prompt_builder.py # Module-specific prompts
+│   │       ├── parser.py         # JSON + markdown table parser
+│   │       ├── *_service.py      # Module persistence services
+│   │       ├── auth_service.py   # JWT + bcrypt
+│   │       ├── scheduler_service.py # Background task scheduler
+│   │       ├── email_service.py  # SMTP notifications
+│   │       └── export_service.py # CSV + PDF export
+│   ├── alembic/                  # Database migrations
+│   └── tests/                    # 60 pytest tests
+│
+├── frontend/
+│   ├── src/
+│   │   ├── app/                  # 14 Next.js pages
+│   │   │   ├── page.tsx          # Dashboard with charts
+│   │   │   ├── keywords/         # Keyword research
+│   │   │   ├── competitor/       # Competitor analysis
+│   │   │   ├── content/          # Content brief
+│   │   │   ├── audit/            # SEO audit
+│   │   │   ├── full/             # Full workflow
+│   │   │   ├── strategy/         # Strategy workflow
+│   │   │   ├── fix/              # Fix workflow
+│   │   │   ├── reports/          # Reports list + detail
+│   │   │   ├── compare/          # Side-by-side comparison
+│   │   │   ├── schedules/        # Schedule management
+│   │   │   └── login/            # Auth page
+│   │   ├── components/           # 20+ React components
+│   │   ├── hooks/                # useSSE, useAuth, useTheme, useApi
+│   │   ├── lib/                  # API client, types, constants
+│   │   └── i18n/vi.ts            # Vietnamese strings
+│   └── tailwind.config.ts
+│
+├── docker-compose.yml            # PostgreSQL container
+├── seo-agent-prompt.txt          # System prompt (source of truth)
+└── .env.example                  # Environment template
 ```
 
-## Tips
+## API Endpoints
 
-1. **Start with `/keywords`** to identify opportunities, then chain to `/content` for the best keyword
-2. **Use `/full`** for initial site assessment — it covers everything
-3. **Run `/fix`** for quick, actionable improvements with code you can copy-paste
-4. **For Vietnamese sites**, the agent auto-detects and adjusts its analysis
-5. **Chain commands** in a conversation for contextual analysis — the agent remembers previous results
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/{module}/analyze` | Start analysis (returns report_id + stream_url) |
+| GET | `/api/{module}/stream/{id}` | SSE stream of AI response |
+| GET | `/api/{module}/{id}` | Get structured results |
+| POST | `/api/workflows/{type}` | Start combined workflow |
+| GET | `/api/reports` | List reports (filterable) |
+| GET | `/api/reports/stats` | Dashboard statistics |
+| GET | `/api/reports/search?q=` | Full-text search |
+| GET | `/api/reports/{id}/export/{csv\|pdf}` | Export report |
+| POST | `/api/reports/{id}/retry` | Retry failed report |
+| CRUD | `/api/schedules` | Manage scheduled analyses |
+| CRUD | `/api/projects` | Manage projects |
+| POST | `/api/auth/register` | Register new user |
+| POST | `/api/auth/login` | Login |
+| GET | `/api/auth/me` | Get current user |
+
+## SEO Modules
+
+### Keyword Research (`/keywords`)
+- 15-20 keyword suggestions with clusters
+- Search volume, difficulty, intent, CPC, opportunity score
+- Golden keywords highlighted (high volume + low difficulty)
+
+### Competitor Analysis (`/competitor`)
+- 3-5 competitor profiles with traffic and DA
+- Keyword gap matrix
+- Strengths/weaknesses analysis
+
+### Content Brief (`/content`)
+- Title tag + meta description (optimized length)
+- Full H2/H3 outline with key points
+- LSI keywords, snippet strategy, E-E-A-T signals
+
+### On-Page Audit (`/audit`)
+- SEO score (0-100) with letter grade
+- Issues by severity (Critical/Warning/Info)
+- Quick wins with effort level tags
+- Technical checklist
+
+## Testing
+
+```bash
+cd backend
+pytest tests/ -v    # 60 tests
+```
+
+## Email Notifications (Optional)
+
+Configure SMTP in `.env` to receive email alerts when scheduled analyses complete:
+
+```env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your@gmail.com
+SMTP_PASSWORD=app-password
+NOTIFY_EMAIL=your@gmail.com
+```
 
 ## License
 

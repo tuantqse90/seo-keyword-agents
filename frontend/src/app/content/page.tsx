@@ -19,10 +19,10 @@ function EeatSignals({ signals }: { signals: any }) {
   if (!items.length) return null;
   return (
     <div className="card">
-      <h3 className="font-semibold text-gray-900 mb-3">E-E-A-T Signals</h3>
+      <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">E-E-A-T Signals</h3>
       <ul className="space-y-1">
         {items.map((signal, i) => (
-          <li key={i} className="text-sm text-gray-700 flex items-start gap-2">
+          <li key={i} className="text-sm text-gray-700 dark:text-gray-300 flex items-start gap-2">
             <span className="text-green-500 mt-0.5">&#10003;</span>
             {signal}
           </li>

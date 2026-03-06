@@ -45,6 +45,7 @@ export function useAuth() {
   const logout = useCallback(() => {
     localStorage.removeItem("token");
     setUser(null);
+    window.location.href = "/login";
   }, []);
 
   return { user, loading, login, register, logout };

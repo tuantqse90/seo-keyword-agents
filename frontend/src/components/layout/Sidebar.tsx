@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { vi } from "@/i18n/vi";
 import clsx from "clsx";
 import ProjectSelector from "./ProjectSelector";
+import SearchModal from "@/components/common/SearchModal";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -29,8 +30,21 @@ export default function Sidebar() {
   const pathname = usePathname();
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const { isDark, toggle } = useTheme();
   const { user, logout } = useAuth();
+
+  // Ctrl+K shortcut
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
 
   const sidebarContent = (
     <>
@@ -64,6 +78,20 @@ export default function Sidebar() {
             </svg>
           </button>
         </div>
+      </div>
+
+      {/* Search button */}
+      <div className="px-4 pt-4">
+        <button
+          onClick={() => setSearchOpen(true)}
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <span className="flex-1 text-left">Tim kiem...</span>
+          <kbd className="hidden sm:inline text-xs border border-gray-300 dark:border-gray-500 rounded px-1 py-0.5">&#8984;K</kbd>
+        </button>
       </div>
 
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
@@ -154,6 +182,8 @@ export default function Sidebar() {
       >
         {sidebarContent}
       </aside>
+
+      <SearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
     </>
   );
 }

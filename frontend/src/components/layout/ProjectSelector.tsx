@@ -34,12 +34,12 @@ export default function ProjectSelector({ selected, onSelect }: ProjectSelectorP
   };
 
   return (
-    <div className="p-4 border-t border-gray-200">
-      <label className="text-xs font-medium text-gray-500 block mb-2">Du an</label>
+    <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+      <label className="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-2">Du an</label>
       <select
         value={selected || ""}
         onChange={(e) => onSelect(e.target.value || null)}
-        className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white"
+        className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-800 dark:text-gray-200"
       >
         <option value="">Tat ca du an</option>
         {projects.map((p) => (
@@ -59,14 +59,14 @@ export default function ProjectSelector({ selected, onSelect }: ProjectSelectorP
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             placeholder="Ten du an"
-            className="w-full text-sm border border-gray-300 rounded px-2 py-1"
+            className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-800 dark:text-gray-200"
           />
           <input
             type="text"
             value={newUrl}
             onChange={(e) => setNewUrl(e.target.value)}
             placeholder="URL (tuy chon)"
-            className="w-full text-sm border border-gray-300 rounded px-2 py-1"
+            className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-800 dark:text-gray-200"
           />
           <button onClick={handleCreate} className="btn-primary text-xs w-full">
             Tao

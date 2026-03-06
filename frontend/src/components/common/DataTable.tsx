@@ -20,7 +20,7 @@ export default function DataTable<T extends Record<string, any>>({
 }: DataTableProps<T>) {
   if (!data.length) {
     return (
-      <div className="text-center py-8 text-gray-500">
+      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
         {emptyMessage}
       </div>
     );
@@ -30,11 +30,11 @@ export default function DataTable<T extends Record<string, any>>({
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-gray-200">
+          <tr className="border-b border-gray-200 dark:border-gray-700">
             {columns.map((col) => (
               <th
                 key={col.key}
-                className={`text-left py-3 px-4 text-gray-600 font-medium ${col.className || ""}`}
+                className={`text-left py-3 px-4 text-gray-600 dark:text-gray-400 font-medium ${col.className || ""}`}
               >
                 {col.header}
               </th>
@@ -43,7 +43,7 @@ export default function DataTable<T extends Record<string, any>>({
         </thead>
         <tbody>
           {data.map((item, i) => (
-            <tr key={i} className="border-b border-gray-100 hover:bg-gray-50">
+            <tr key={i} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
               {columns.map((col) => (
                 <td key={col.key} className={`py-3 px-4 ${col.className || ""}`}>
                   {col.render ? col.render(item) : String(item[col.key] ?? "")}

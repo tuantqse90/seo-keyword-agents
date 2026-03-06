@@ -12,13 +12,13 @@ export default function KeywordTable({ keywords }: { keywords: KeywordData[] }) 
       header: vi.keywords.cluster,
       render: (kw: KeywordData) => (
         <div>
-          <span className="font-medium text-gray-900">{kw.keyword}</span>
+          <span className="font-medium text-gray-900 dark:text-gray-100">{kw.keyword}</span>
           {kw.is_golden && (
-            <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full font-medium">
+            <span className="ml-2 text-xs bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 px-2 py-0.5 rounded-full font-medium">
               {vi.keywords.golden}
             </span>
           )}
-          {kw.cluster && <p className="text-xs text-gray-400 mt-0.5">{kw.cluster}</p>}
+          {kw.cluster && <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{kw.cluster}</p>}
         </div>
       ),
     },
@@ -40,13 +40,13 @@ export default function KeywordTable({ keywords }: { keywords: KeywordData[] }) 
       header: vi.keywords.intent,
       render: (kw: KeywordData) => {
         const colors: Record<string, string> = {
-          informational: "bg-blue-50 text-blue-700",
-          transactional: "bg-green-50 text-green-700",
-          navigational: "bg-gray-50 text-gray-700",
-          commercial: "bg-purple-50 text-purple-700",
+          informational: "bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-300",
+          transactional: "bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-300",
+          navigational: "bg-gray-50 dark:bg-gray-900 text-gray-700 dark:text-gray-300",
+          commercial: "bg-purple-50 dark:bg-purple-900 text-purple-700 dark:text-purple-300",
         };
         return (
-          <span className={`text-xs px-2 py-1 rounded-full ${colors[kw.search_intent || ""] || "bg-gray-50 text-gray-500"}`}>
+          <span className={`text-xs px-2 py-1 rounded-full ${colors[kw.search_intent || ""] || "bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400"}`}>
             {kw.search_intent || "-"}
           </span>
         );

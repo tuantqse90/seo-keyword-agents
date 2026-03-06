@@ -4,7 +4,7 @@ from io import BytesIO
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
-from sqlalchemy import select
+from sqlalchemy import select, func, cast, Date
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -15,6 +15,65 @@ from app.schemas.report import AnalyzeResponse, ReportOut, ReportListOut
 from app.services.export_service import export_csv, export_pdf_html
 
 router = APIRouter(prefix="/api/reports", tags=["reports"])
+
+
+@router.get("/stats")
+async def report_stats(db: AsyncSession = Depends(get_db)):
+    """Dashboard statistics: total, by module, by status, and daily counts."""
+    # Total
+    total = await db.scalar(select(func.count(Report.id)))
+
+    # By module
+    module_stmt = select(Report.module, func.count(Report.id)).group_by(Report.module)
+    module_result = await db.execute(module_stmt)
+    by_module = {row[0].value: row[1] for row in module_result.all()}
+
+    # By status
+    status_stmt = select(Report.status, func.count(Report.id)).group_by(Report.status)
+    status_result = await db.execute(status_stmt)
+    by_status = {row[0].value: row[1] for row in status_result.all()}
+
+    # Daily counts (last 30 days)
+    daily_stmt = (
+        select(
+            cast(Report.created_at, Date).label("date"),
+            func.count(Report.id).label("count"),
+        )
+        .group_by("date")
+        .order_by("date")
+        .limit(30)
+    )
+    daily_result = await db.execute(daily_stmt)
+    daily = [{"date": str(row.date), "count": row.count} for row in daily_result.all()]
+
+    return {
+        "total": total or 0,
+        "by_module": by_module,
+        "by_status": by_status,
+        "daily": daily,
+    }
+
+
+@router.get("/search", response_model=list[ReportListOut])
+async def search_reports(
+    q: str = Query(..., min_length=1),
+    limit: int = Query(20, le=100),
+    db: AsyncSession = Depends(get_db),
+):
+    """Full-text search across report queries and markdown content."""
+    pattern = f"%{q}%"
+    stmt = (
+        select(Report)
+        .where(
+            (Report.input_query.ilike(pattern))
+            | (Report.raw_markdown.ilike(pattern))
+            | (Report.summary.ilike(pattern))
+        )
+        .order_by(Report.created_at.desc())
+        .limit(limit)
+    )
+    result = await db.execute(stmt)
+    return result.scalars().all()
 
 
 @router.get("", response_model=list[ReportListOut])

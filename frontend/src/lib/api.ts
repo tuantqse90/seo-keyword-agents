@@ -46,6 +46,15 @@ export const getReports = (params?: Record<string, string>) => {
 };
 
 export const getReport = (id: string) => fetchApi<any>(`/api/reports/${id}`);
+export const searchReports = (q: string) =>
+  fetchApi<any[]>(`/api/reports/search?q=${encodeURIComponent(q)}&limit=20`);
+
+export const getReportStats = () => fetchApi<{
+  total: number;
+  by_module: Record<string, number>;
+  by_status: Record<string, number>;
+  daily: Array<{ date: string; count: number }>;
+}>("/api/reports/stats");
 export const deleteReport = (id: string) =>
   fetch(`${API_BASE}/api/reports/${id}`, { method: "DELETE" });
 

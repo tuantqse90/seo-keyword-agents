@@ -12,14 +12,14 @@ interface ScoreBadgeProps {
 export default function ScoreBadge({ score, max = 100, label, size = "sm" }: ScoreBadgeProps) {
   const pct = (score / max) * 100;
   const color = pct >= 80 ? "text-green-600" : pct >= 60 ? "text-yellow-600" : pct >= 40 ? "text-orange-600" : "text-red-600";
-  const bg = pct >= 80 ? "bg-green-100" : pct >= 60 ? "bg-yellow-100" : pct >= 40 ? "bg-orange-100" : "bg-red-100";
+  const bg = pct >= 80 ? "bg-green-100 dark:bg-green-900" : pct >= 60 ? "bg-yellow-100 dark:bg-yellow-900" : pct >= 40 ? "bg-orange-100 dark:bg-orange-900" : "bg-red-100 dark:bg-red-900";
 
   return (
     <div className={clsx("inline-flex items-center gap-2 rounded-lg px-3 py-1", bg)}>
       <span className={clsx("font-bold", color, size === "lg" ? "text-2xl" : "text-sm")}>
         {score}/{max}
       </span>
-      {label && <span className="text-xs text-gray-600">{label}</span>}
+      {label && <span className="text-xs text-gray-600 dark:text-gray-400">{label}</span>}
     </div>
   );
 }

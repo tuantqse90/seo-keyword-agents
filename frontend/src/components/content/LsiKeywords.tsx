@@ -7,10 +7,10 @@ export default function LsiKeywords({ keywords }: { keywords: string[] | any | n
 
   return (
     <div className="card">
-      <h3 className="font-semibold text-gray-900 mb-3">Tu khoa LSI / Ngu nghia</h3>
+      <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">Tu khoa LSI / Ngu nghia</h3>
       <div className="flex flex-wrap gap-2">
         {items.map((kw, i) => (
-          <span key={i} className="text-sm bg-primary-50 text-primary-700 px-3 py-1 rounded-full">
+          <span key={i} className="text-sm bg-primary-50 dark:bg-primary-900 text-primary-700 dark:text-primary-300 px-3 py-1 rounded-full">
             {kw}
           </span>
         ))}

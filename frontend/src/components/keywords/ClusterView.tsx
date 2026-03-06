@@ -14,12 +14,12 @@ export default function ClusterView({ keywords }: { keywords: KeywordData[] }) {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {Object.entries(clusters).map(([name, kws]) => (
         <div key={name} className="card">
-          <h3 className="font-semibold text-gray-900 mb-3">{name}</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">{name}</h3>
           <div className="space-y-2">
             {kws.map((kw) => (
               <div key={kw.id} className="flex items-center justify-between text-sm">
-                <span className="text-gray-700">{kw.keyword}</span>
-                <span className="text-gray-400 font-mono text-xs">
+                <span className="text-gray-700 dark:text-gray-300">{kw.keyword}</span>
+                <span className="text-gray-400 dark:text-gray-500 font-mono text-xs">
                   {kw.search_volume?.toLocaleString() ?? "?"}
                 </span>
               </div>

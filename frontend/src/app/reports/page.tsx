@@ -43,7 +43,7 @@ export default function ReportsPage() {
             key={m}
             onClick={() => setFilter(m)}
             className={`text-sm px-3 py-1.5 rounded-full ${
-              filter === m ? "bg-primary-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              filter === m ? "bg-primary-600 text-white" : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
             }`}
           >
             {m || "Tat ca"}
@@ -55,19 +55,19 @@ export default function ReportsPage() {
         <div className="card">
           <div className="space-y-2">
             {reports.map((r) => (
-              <div key={r.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between py-3 px-4 rounded-lg hover:bg-gray-50 border-b border-gray-100 last:border-0 gap-2">
+              <div key={r.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between py-3 px-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-700 last:border-0 gap-2">
                 <Link href={`/reports/${r.id}`} className="flex-1 flex items-center gap-4">
                   <span className={`text-xs px-2 py-1 rounded-full font-medium ${MODULE_COLORS[r.module]}`}>
                     {r.module}
                   </span>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">{r.input_query}</p>
-                    {r.summary && <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{r.summary}</p>}
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{r.input_query}</p>
+                    {r.summary && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1">{r.summary}</p>}
                   </div>
                   <span className={`text-xs px-2 py-1 rounded-full ${STATUS_COLORS[r.status]}`}>
                     {vi.common.status[r.status as keyof typeof vi.common.status]}
                   </span>
-                  <span className="text-xs text-gray-400 w-24 text-right">
+                  <span className="text-xs text-gray-400 dark:text-gray-500 w-24 text-right">
                     {new Date(r.created_at).toLocaleDateString("vi-VN")}
                   </span>
                 </Link>
@@ -86,7 +86,7 @@ export default function ReportsPage() {
                   )}
                   <button
                     onClick={() => handleDelete(r.id)}
-                    className="text-gray-400 hover:text-red-500 text-sm"
+                    className="text-gray-400 dark:text-gray-500 hover:text-red-500 text-sm"
                     title={vi.reports.delete}
                   >
                     &#10005;
@@ -97,7 +97,7 @@ export default function ReportsPage() {
           </div>
         </div>
       ) : (
-        <div className="card text-center text-gray-500 py-12">
+        <div className="card text-center text-gray-500 dark:text-gray-400 py-12">
           {vi.reports.empty}
         </div>
       )}

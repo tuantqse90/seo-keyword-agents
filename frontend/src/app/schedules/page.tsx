@@ -72,14 +72,14 @@ export default function SchedulesPage() {
 
       {showForm && (
         <div className="card mb-6">
-          <h3 className="font-semibold text-gray-900 mb-4">Tao lich phan tich moi</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">Tao lich phan tich moi</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Module</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Module</label>
               <select
                 value={formModule}
                 onChange={(e) => setFormModule(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 dark:text-gray-200"
               >
                 {MODULES.map((m) => (
                   <option key={m} value={m}>{m}</option>
@@ -87,11 +87,11 @@ export default function SchedulesPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tan suat</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tan suat</label>
               <select
                 value={formInterval}
                 onChange={(e) => setFormInterval(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 dark:text-gray-200"
               >
                 {INTERVAL_OPTIONS.map((o) => (
                   <option key={o.value} value={o.value}>{o.label}</option>
@@ -99,12 +99,12 @@ export default function SchedulesPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">URL / Tu khoa</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">URL / Tu khoa</label>
               <input
                 value={formQuery}
                 onChange={(e) => setFormQuery(e.target.value)}
                 placeholder="VD: example.com"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 dark:text-gray-200"
               />
             </div>
           </div>
@@ -119,32 +119,32 @@ export default function SchedulesPage() {
         <div className="card">
           <div className="space-y-2">
             {schedules.map((s) => (
-              <div key={s.id} className={`flex items-center justify-between py-3 px-4 rounded-lg border-b border-gray-100 last:border-0 ${s.is_active ? "" : "opacity-50"}`}>
+              <div key={s.id} className={`flex items-center justify-between py-3 px-4 rounded-lg border-b border-gray-100 dark:border-gray-700 last:border-0 ${s.is_active ? "" : "opacity-50"}`}>
                 <div className="flex items-center gap-4 flex-1">
                   <span className={`text-xs px-2 py-1 rounded-full font-medium ${MODULE_COLORS[s.module]}`}>
                     {s.module}
                   </span>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">{s.query}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{s.query}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                       {INTERVAL_OPTIONS.find((o) => o.value === s.interval_hours)?.label || `${s.interval_hours}h`}
                       {s.last_run_at && ` — Lan cuoi: ${new Date(s.last_run_at).toLocaleString("vi-VN")}`}
                     </p>
                   </div>
-                  <div className="text-xs text-gray-400">
+                  <div className="text-xs text-gray-400 dark:text-gray-500">
                     Lan toi: {new Date(s.next_run_at).toLocaleString("vi-VN")}
                   </div>
                 </div>
                 <div className="flex items-center gap-2 ml-4">
                   <button
                     onClick={() => handleToggle(s)}
-                    className={`text-xs px-2 py-1 rounded-full font-medium ${s.is_active ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}
+                    className={`text-xs px-2 py-1 rounded-full font-medium ${s.is_active ? "bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300" : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"}`}
                   >
                     {s.is_active ? "Dang bat" : "Da tat"}
                   </button>
                   <button
                     onClick={() => handleDelete(s.id)}
-                    className="text-gray-400 hover:text-red-500 text-sm"
+                    className="text-gray-400 dark:text-gray-500 hover:text-red-500 text-sm"
                   >
                     &#10005;
                   </button>
@@ -154,7 +154,7 @@ export default function SchedulesPage() {
           </div>
         </div>
       ) : (
-        <div className="card text-center text-gray-500 py-12">
+        <div className="card text-center text-gray-500 dark:text-gray-400 py-12">
           Chua co lich phan tich nao
         </div>
       )}
