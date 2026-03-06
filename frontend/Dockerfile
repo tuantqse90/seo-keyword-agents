@@ -8,7 +8,7 @@ COPY . .
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
-RUN npx next build
+RUN mkdir -p public && npx next build
 
 # Production
 FROM node:20-alpine AS runner
