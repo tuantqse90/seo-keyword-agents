@@ -13,22 +13,24 @@ from app.services.competitor_service import create_competitor_report, save_compe
 from app.services.keyword_service import mark_report_failed
 from app.services.claude_client import stream_claude_response
 from app.services.prompt_builder import build_competitor_prompt
+from app.services.auth_service import require_auth
+from app.services.stream_manager import create_stream, get_stream, remove_stream
+from app.models.user import User
 
 router = APIRouter(prefix="/api/competitor", tags=["competitor"])
-_streams: dict[str, asyncio.Queue] = {}
 
 
 @router.post("/analyze", response_model=AnalyzeResponse)
-async def analyze_competitor(req: AnalyzeRequest, db: AsyncSession = Depends(get_db)):
+async def analyze_competitor(req: AnalyzeRequest, db: AsyncSession = Depends(get_db), user: User = Depends(require_auth)):
     report = await create_competitor_report(db, req.query, req.project_id)
     report_id = str(report.id)
-    _streams[report_id] = asyncio.Queue()
+    create_stream(report_id)
     asyncio.create_task(_run_analysis(report_id, req.query))
     return AnalyzeResponse(report_id=report.id, stream_url=f"/api/competitor/stream/{report_id}")
 
 
 async def _run_analysis(report_id: str, query: str):
-    queue = _streams[report_id]
+    queue = get_stream(report_id)
     full_text = ""
     try:
         async with async_session() as db:
@@ -55,7 +57,7 @@ async def _run_analysis(report_id: str, query: str):
 
 @router.get("/stream/{report_id}")
 async def stream_competitor(report_id: str):
-    queue = _streams.get(report_id)
+    queue = get_stream(report_id)
     if not queue:
         raise HTTPException(404, "Stream not found")
 
@@ -67,13 +69,13 @@ async def stream_competitor(report_id: str):
                     break
                 yield msg
         finally:
-            _streams.pop(report_id, None)
+            remove_stream(report_id)
 
     return EventSourceResponse(event_generator())
 
 
 @router.get("/{report_id}", response_model=CompetitorReportOut)
-async def get_competitor(report_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def get_competitor(report_id: uuid.UUID, db: AsyncSession = Depends(get_db), user: User = Depends(require_auth)):
     report = await get_competitor_report(db, report_id)
     if not report:
         raise HTTPException(404, "Report not found")

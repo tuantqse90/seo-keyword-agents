@@ -9,6 +9,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.models.schedule import Schedule
 from app.models.report import ReportModule
+from app.models.user import User
+from app.services.auth_service import require_auth
 
 router = APIRouter(prefix="/api/schedules", tags=["schedules"])
 
@@ -41,14 +43,14 @@ class ScheduleUpdate(BaseModel):
 
 
 @router.get("", response_model=list[ScheduleOut])
-async def list_schedules(db: AsyncSession = Depends(get_db)):
+async def list_schedules(db: AsyncSession = Depends(get_db), user: User = Depends(require_auth)):
     stmt = select(Schedule).order_by(Schedule.created_at.desc())
     result = await db.execute(stmt)
     return result.scalars().all()
 
 
 @router.post("", response_model=ScheduleOut, status_code=201)
-async def create_schedule(data: ScheduleCreate, db: AsyncSession = Depends(get_db)):
+async def create_schedule(data: ScheduleCreate, db: AsyncSession = Depends(get_db), user: User = Depends(require_auth)):
     schedule = Schedule(
         module=data.module,
         query=data.query,
@@ -63,7 +65,7 @@ async def create_schedule(data: ScheduleCreate, db: AsyncSession = Depends(get_d
 
 
 @router.put("/{schedule_id}", response_model=ScheduleOut)
-async def update_schedule(schedule_id: uuid.UUID, data: ScheduleUpdate, db: AsyncSession = Depends(get_db)):
+async def update_schedule(schedule_id: uuid.UUID, data: ScheduleUpdate, db: AsyncSession = Depends(get_db), user: User = Depends(require_auth)):
     schedule = await db.get(Schedule, schedule_id)
     if not schedule:
         raise HTTPException(404, "Schedule not found")
@@ -80,7 +82,7 @@ async def update_schedule(schedule_id: uuid.UUID, data: ScheduleUpdate, db: Asyn
 
 
 @router.delete("/{schedule_id}", status_code=204)
-async def delete_schedule(schedule_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def delete_schedule(schedule_id: uuid.UUID, db: AsyncSession = Depends(get_db), user: User = Depends(require_auth)):
     schedule = await db.get(Schedule, schedule_id)
     if not schedule:
         raise HTTPException(404, "Schedule not found")

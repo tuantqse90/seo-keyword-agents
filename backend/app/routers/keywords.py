@@ -7,25 +7,25 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db, async_session
 from app.models.report import ReportStatus
+from app.models.user import User
 from app.schemas.report import AnalyzeRequest, AnalyzeResponse
 from app.schemas.keyword import KeywordReportOut, KeywordOut
 from app.schemas.report import ReportOut
 from app.services.keyword_service import create_keyword_report, save_keyword_results, get_keyword_report, mark_report_failed
 from app.services.claude_client import stream_claude_response
 from app.services.prompt_builder import build_keyword_prompt
+from app.services.auth_service import require_auth
+from app.services.stream_manager import create_stream, get_stream, remove_stream
 
 router = APIRouter(prefix="/api/keywords", tags=["keywords"])
 
-# In-memory store for active streams
-_streams: dict[str, asyncio.Queue] = {}
-
 
 @router.post("/analyze", response_model=AnalyzeResponse)
-async def analyze_keywords(req: AnalyzeRequest, db: AsyncSession = Depends(get_db)):
+async def analyze_keywords(req: AnalyzeRequest, db: AsyncSession = Depends(get_db), user: User = Depends(require_auth)):
     report = await create_keyword_report(db, req.query, req.project_id)
     report_id = str(report.id)
 
-    _streams[report_id] = asyncio.Queue()
+    create_stream(report_id)
 
     asyncio.create_task(_run_analysis(report_id, req.query))
 
@@ -36,7 +36,7 @@ async def analyze_keywords(req: AnalyzeRequest, db: AsyncSession = Depends(get_d
 
 
 async def _run_analysis(report_id: str, query: str):
-    queue = _streams[report_id]
+    queue = get_stream(report_id)
     full_text = ""
 
     try:
@@ -68,7 +68,7 @@ async def _run_analysis(report_id: str, query: str):
 
 @router.get("/stream/{report_id}")
 async def stream_keywords(report_id: str):
-    queue = _streams.get(report_id)
+    queue = get_stream(report_id)
     if not queue:
         raise HTTPException(404, "Stream not found")
 
@@ -80,13 +80,13 @@ async def stream_keywords(report_id: str):
                     break
                 yield msg
         finally:
-            _streams.pop(report_id, None)
+            remove_stream(report_id)
 
     return EventSourceResponse(event_generator())
 
 
 @router.get("/{report_id}", response_model=KeywordReportOut)
-async def get_keywords(report_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def get_keywords(report_id: uuid.UUID, db: AsyncSession = Depends(get_db), user: User = Depends(require_auth)):
     report = await get_keyword_report(db, report_id)
     if not report:
         raise HTTPException(404, "Report not found")

@@ -14,9 +14,11 @@ from app.services.keyword_service import save_keyword_results, mark_report_faile
 from app.services.competitor_service import save_competitor_results
 from app.services.content_service import save_content_results
 from app.services.audit_service import save_audit_results
+from app.services.auth_service import require_auth
+from app.services.stream_manager import create_stream, get_stream, remove_stream
+from app.models.user import User
 
 router = APIRouter(prefix="/api/workflows", tags=["workflows"])
-_streams: dict[str, asyncio.Queue] = {}
 
 WORKFLOW_MODULES = {
     "full": ["keywords", "competitor", "content", "audit"],
@@ -39,7 +41,7 @@ SAVE_FUNCTIONS = {
 
 
 @router.post("/{workflow_type}", response_model=AnalyzeResponse)
-async def start_workflow(workflow_type: str, req: AnalyzeRequest, db: AsyncSession = Depends(get_db)):
+async def start_workflow(workflow_type: str, req: AnalyzeRequest, db: AsyncSession = Depends(get_db), user: User = Depends(require_auth)):
     if workflow_type not in WORKFLOW_MODULES:
         raise HTTPException(400, f"Unknown workflow: {workflow_type}")
 
@@ -54,7 +56,7 @@ async def start_workflow(workflow_type: str, req: AnalyzeRequest, db: AsyncSessi
     await db.refresh(report)
 
     report_id = str(report.id)
-    _streams[report_id] = asyncio.Queue()
+    create_stream(report_id)
     asyncio.create_task(_run_workflow(report_id, req.query, workflow_type))
 
     return AnalyzeResponse(
@@ -64,7 +66,7 @@ async def start_workflow(workflow_type: str, req: AnalyzeRequest, db: AsyncSessi
 
 
 async def _run_workflow(report_id: str, query: str, workflow_type: str):
-    queue = _streams[report_id]
+    queue = get_stream(report_id)
     modules = WORKFLOW_MODULES[workflow_type]
     all_markdown = ""
 
@@ -111,7 +113,7 @@ async def _run_workflow(report_id: str, query: str, workflow_type: str):
 
 @router.get("/{workflow_type}/stream/{report_id}")
 async def stream_workflow(workflow_type: str, report_id: str):
-    queue = _streams.get(report_id)
+    queue = get_stream(report_id)
     if not queue:
         raise HTTPException(404, "Stream not found")
 
@@ -123,6 +125,6 @@ async def stream_workflow(workflow_type: str, report_id: str):
                     break
                 yield msg
         finally:
-            _streams.pop(report_id, None)
+            remove_stream(report_id)
 
     return EventSourceResponse(event_generator())

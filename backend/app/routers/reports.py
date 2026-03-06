@@ -13,12 +13,14 @@ from app.models.report import Report, ReportModule, ReportStatus
 from app.models.audit import AuditResult
 from app.schemas.report import AnalyzeResponse, ReportOut, ReportListOut
 from app.services.export_service import export_csv, export_pdf_html
+from app.services.auth_service import require_auth
+from app.models.user import User
 
 router = APIRouter(prefix="/api/reports", tags=["reports"])
 
 
 @router.get("/stats")
-async def report_stats(db: AsyncSession = Depends(get_db)):
+async def report_stats(db: AsyncSession = Depends(get_db), user: User = Depends(require_auth)):
     """Dashboard statistics: total, by module, by status, and daily counts."""
     # Total
     total = await db.scalar(select(func.count(Report.id)))
@@ -56,9 +58,10 @@ async def report_stats(db: AsyncSession = Depends(get_db)):
 
 @router.get("/search", response_model=list[ReportListOut])
 async def search_reports(
-    q: str = Query(..., min_length=1),
+    q: str = Query(..., min_length=1, max_length=255),
     limit: int = Query(20, le=100),
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_auth),
 ):
     """Full-text search across report queries and markdown content."""
     pattern = f"%{q}%"
@@ -84,6 +87,7 @@ async def list_reports(
     limit: int = Query(50, le=200),
     offset: int = 0,
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_auth),
 ):
     stmt = select(Report).order_by(Report.created_at.desc())
     if module:
@@ -98,7 +102,7 @@ async def list_reports(
 
 
 @router.get("/{report_id}", response_model=ReportOut)
-async def get_report(report_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def get_report(report_id: uuid.UUID, db: AsyncSession = Depends(get_db), user: User = Depends(require_auth)):
     report = await db.get(Report, report_id)
     if not report:
         raise HTTPException(404, "Report not found")
@@ -106,7 +110,7 @@ async def get_report(report_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
 
 
 @router.delete("/{report_id}", status_code=204)
-async def delete_report(report_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def delete_report(report_id: uuid.UUID, db: AsyncSession = Depends(get_db), user: User = Depends(require_auth)):
     report = await db.get(Report, report_id)
     if not report:
         raise HTTPException(404, "Report not found")
@@ -115,7 +119,7 @@ async def delete_report(report_id: uuid.UUID, db: AsyncSession = Depends(get_db)
 
 
 @router.post("/{report_id}/retry", response_model=AnalyzeResponse)
-async def retry_report(report_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def retry_report(report_id: uuid.UUID, db: AsyncSession = Depends(get_db), user: User = Depends(require_auth)):
     """Retry a failed report by creating a new analysis with the same query."""
     report = await db.get(Report, report_id)
     if not report:
@@ -127,18 +131,17 @@ async def retry_report(report_id: uuid.UUID, db: AsyncSession = Depends(get_db))
     query = report.input_query
     project_id = report.project_id
 
-    # Route to the correct module's analyze endpoint
     from app.routers import keywords, competitor, content, audit, workflows
+    from app.services.stream_manager import create_stream
 
     module_map = {
-        "keywords": (keywords.create_keyword_report if hasattr(keywords, 'create_keyword_report') else None, keywords._run_analysis, keywords._streams, "/api/keywords/stream"),
-        "competitor": (competitor.create_competitor_report if hasattr(competitor, 'create_competitor_report') else None, competitor._run_analysis, competitor._streams, "/api/competitor/stream"),
-        "content": (content.create_content_report if hasattr(content, 'create_content_report') else None, content._run_analysis, content._streams, "/api/content/stream"),
-        "audit": (audit.create_audit_report if hasattr(audit, 'create_audit_report') else None, audit._run_analysis, audit._streams, "/api/audit/stream"),
+        "keywords": (keywords._run_analysis, "/api/keywords/stream"),
+        "competitor": (competitor._run_analysis, "/api/competitor/stream"),
+        "content": (content._run_analysis, "/api/content/stream"),
+        "audit": (audit._run_analysis, "/api/audit/stream"),
     }
 
     if module in ("full", "strategy", "fix"):
-        # Re-run as workflow
         new_report = Report(
             module=report.module, input_query=query,
             status=ReportStatus.PENDING, project_id=project_id,
@@ -147,12 +150,11 @@ async def retry_report(report_id: uuid.UUID, db: AsyncSession = Depends(get_db))
         await db.commit()
         await db.refresh(new_report)
         rid = str(new_report.id)
-        workflows._streams[rid] = asyncio.Queue()
+        create_stream(rid)
         asyncio.create_task(workflows._run_workflow(rid, query, module))
         return AnalyzeResponse(report_id=new_report.id, stream_url=f"/api/workflows/{module}/stream/{rid}")
 
     if module in module_map:
-        # Import the service create function
         from app.services.keyword_service import create_keyword_report
         from app.services.competitor_service import create_competitor_report
         from app.services.content_service import create_content_report
@@ -166,8 +168,8 @@ async def retry_report(report_id: uuid.UUID, db: AsyncSession = Depends(get_db))
         }
         new_report = await create_fns[module](db, query, project_id)
         rid = str(new_report.id)
-        _, run_fn, streams, url_prefix = module_map[module]
-        streams[rid] = asyncio.Queue()
+        run_fn, url_prefix = module_map[module]
+        create_stream(rid)
         asyncio.create_task(run_fn(rid, query))
         return AnalyzeResponse(report_id=new_report.id, stream_url=f"{url_prefix}/{rid}")
 
@@ -175,7 +177,7 @@ async def retry_report(report_id: uuid.UUID, db: AsyncSession = Depends(get_db))
 
 
 @router.get("/{report_id}/export/csv")
-async def export_report_csv(report_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def export_report_csv(report_id: uuid.UUID, db: AsyncSession = Depends(get_db), user: User = Depends(require_auth)):
     stmt = (
         select(Report)
         .where(Report.id == report_id)
@@ -199,7 +201,7 @@ async def export_report_csv(report_id: uuid.UUID, db: AsyncSession = Depends(get
 
 
 @router.get("/{report_id}/export/pdf")
-async def export_report_pdf(report_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def export_report_pdf(report_id: uuid.UUID, db: AsyncSession = Depends(get_db), user: User = Depends(require_auth)):
     stmt = (
         select(Report)
         .where(Report.id == report_id)

@@ -14,6 +14,7 @@ from app.database import async_session, engine
 from app.models.report import Report, ReportStatus
 from app.routers import projects, keywords, competitor, content, audit, workflows, reports, schedules, auth
 from app.services.scheduler_service import start_scheduler, stop_scheduler
+from app.services.stream_manager import start_cleanup, stop_cleanup
 from app.middleware.logging_middleware import setup_logging
 
 # Setup structured logging
@@ -36,7 +37,9 @@ async def lifespan(app: FastAPI):
         )
         await db.commit()
     start_scheduler()
+    start_cleanup()
     yield
+    stop_cleanup()
     stop_scheduler()
 
 
