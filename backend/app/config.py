@@ -7,6 +7,16 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://seo_user:seo_password@localhost:5432/seo_dashboard"
 
+    @property
+    def async_database_url(self) -> str:
+        """Ensure database URL uses asyncpg driver (Railway provides postgresql://)."""
+        url = self.database_url
+        if url.startswith("postgresql://"):
+            url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        elif url.startswith("postgres://"):
+            url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+        return url
+
     # LLM Provider: "anthropic" or "deepseek"
     llm_provider: str = "deepseek"
 

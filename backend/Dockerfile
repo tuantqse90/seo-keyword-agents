@@ -5,7 +5,7 @@ WORKDIR /app
 # System deps for weasyprint
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 \
-    libffi-dev shared-mime-info && \
+    libffi-dev shared-mime-info curl && \
     rm -rf /var/lib/apt/lists/*
 
 COPY pyproject.toml .
@@ -13,6 +13,7 @@ RUN pip install --no-cache-dir -e .
 
 COPY . .
 
-EXPOSE 8000
+ENV PORT=8000
+EXPOSE ${PORT}
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port ${PORT}"
