@@ -1,10 +1,10 @@
-"""JWT authentication service."""
+"""JWT authentication service with access + refresh tokens."""
 
 import uuid
 from datetime import datetime, timedelta
 
+import bcrypt
 import jwt
-from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy import select
@@ -14,22 +14,36 @@ from app.config import settings
 from app.database import get_db
 from app.models.user import User
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer(auto_error=False)
 
 
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    pw = password[:72].encode("utf-8")
+    return bcrypt.hashpw(pw, bcrypt.gensalt()).decode("utf-8")
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return pwd_context.verify(plain, hashed)
+    pw = plain[:72].encode("utf-8")
+    return bcrypt.checkpw(pw, hashed.encode("utf-8"))
 
 
 def create_token(user_id: str) -> str:
+    """Create short-lived access token."""
     payload = {
         "sub": user_id,
+        "type": "access",
         "exp": datetime.utcnow() + timedelta(hours=settings.jwt_expire_hours),
+        "iat": datetime.utcnow(),
+    }
+    return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
+
+
+def create_refresh_token(user_id: str) -> str:
+    """Create long-lived refresh token (30 days)."""
+    payload = {
+        "sub": user_id,
+        "type": "refresh",
+        "exp": datetime.utcnow() + timedelta(days=30),
         "iat": datetime.utcnow(),
     }
     return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
@@ -44,15 +58,37 @@ def decode_token(token: str) -> dict:
         raise HTTPException(status_code=401, detail="Invalid token")
 
 
+async def refresh_access_token(refresh_token: str, db: AsyncSession) -> dict:
+    """Exchange refresh token for new access + refresh token pair."""
+    payload = decode_token(refresh_token)
+    if payload.get("type") != "refresh":
+        raise HTTPException(status_code=401, detail="Invalid token type")
+
+    user_id = payload.get("sub")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    user = await db.get(User, uuid.UUID(user_id))
+    if not user or not user.is_active:
+        raise HTTPException(status_code=401, detail="User not found or inactive")
+
+    return {
+        "token": create_token(str(user.id)),
+        "refresh_token": create_refresh_token(str(user.id)),
+        "user": user,
+    }
+
+
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
     db: AsyncSession = Depends(get_db),
 ) -> User | None:
-    """Returns current user if auth header present, None otherwise.
-    This allows endpoints to work both with and without auth."""
+    """Returns current user if auth header present, None otherwise."""
     if not credentials:
         return None
     payload = decode_token(credentials.credentials)
+    if payload.get("type") == "refresh":
+        return None  # Don't allow refresh tokens for API access
     user_id = payload.get("sub")
     if not user_id:
         return None
@@ -72,4 +108,13 @@ async def require_auth(
     user = await get_current_user(credentials, db)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
+    return user
+
+
+async def require_admin(
+    user: User = Depends(require_auth),
+) -> User:
+    """Requires admin role. Returns user or raises 403."""
+    if user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
     return user

@@ -1,14 +1,23 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 
 from app.models.report import ReportModule, ReportStatus
 
 
 class AnalyzeRequest(BaseModel):
-    query: str
+    query: str = Field(..., min_length=1, max_length=2000)
     project_id: UUID | None = None
+
+    @field_validator("query")
+    @classmethod
+    def sanitize_query(cls, v: str) -> str:
+        from app.utils.validators import sanitize_input
+        v = v.strip()
+        if not v:
+            raise ValueError("Query cannot be empty")
+        return sanitize_input(v, max_length=2000)
 
 
 class AnalyzeResponse(BaseModel):

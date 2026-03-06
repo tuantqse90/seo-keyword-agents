@@ -6,11 +6,43 @@ function getAuthHeaders(): Record<string, string> {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+async function tryRefreshToken(): Promise<boolean> {
+  if (typeof window === "undefined") return false;
+  const refreshToken = localStorage.getItem("refresh_token");
+  if (!refreshToken) return false;
+  try {
+    const res = await fetch(`${API_BASE}/api/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+    if (!res.ok) return false;
+    const data = await res.json();
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("refresh_token", data.refresh_token);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function fetchApi<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
+  let res = await fetch(`${API_BASE}${path}`, {
     headers: { "Content-Type": "application/json", ...getAuthHeaders(), ...options?.headers },
     ...options,
   });
+
+  // Auto-refresh on 401
+  if (res.status === 401 && !path.includes("/auth/")) {
+    const refreshed = await tryRefreshToken();
+    if (refreshed) {
+      res = await fetch(`${API_BASE}${path}`, {
+        headers: { "Content-Type": "application/json", ...getAuthHeaders(), ...options?.headers },
+        ...options,
+      });
+    }
+  }
+
   if (!res.ok) {
     const error = await res.text();
     throw new Error(error || `API error: ${res.status}`);
@@ -68,19 +100,32 @@ export const getContentReport = (id: string) => fetchApi<any>(`/api/content/${id
 export const getAuditReport = (id: string) => fetchApi<any>(`/api/audit/${id}`);
 
 // Auth
+export interface AuthUser {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  refresh_token: string;
+  user: AuthUser;
+}
+
 export const loginApi = (email: string, password: string) =>
-  fetchApi<{ token: string; user: { id: string; email: string; name: string } }>("/api/auth/login", {
+  fetchApi<AuthResponse>("/api/auth/login", {
     method: "POST",
     body: JSON.stringify({ email, password }),
   });
 
 export const registerApi = (email: string, password: string, name: string) =>
-  fetchApi<{ token: string; user: { id: string; email: string; name: string } }>("/api/auth/register", {
+  fetchApi<AuthResponse>("/api/auth/register", {
     method: "POST",
     body: JSON.stringify({ email, password, name }),
   });
 
-export const getMe = () => fetchApi<{ id: string; email: string; name: string }>("/api/auth/me");
+export const getMe = () => fetchApi<AuthUser>("/api/auth/me");
 
 // Schedules
 export const getSchedules = () => fetchApi<any[]>("/api/schedules");
