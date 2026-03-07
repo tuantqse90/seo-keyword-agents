@@ -1,9 +1,10 @@
 "use client";
 
 import type { KeywordGapData } from "@/lib/types";
-import { vi } from "@/i18n/vi";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export default function GapMatrix({ gaps }: { gaps: KeywordGapData[] }) {
+  const { t: vi } = useLanguage();
   if (!gaps.length) return null;
 
   const allCompetitors = new Set<string>();

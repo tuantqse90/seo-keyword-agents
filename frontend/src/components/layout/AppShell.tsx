@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
+import { LanguageProvider } from "@/hooks/useLanguage";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -42,11 +43,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <>
+    <LanguageProvider>
       <Sidebar />
       <main className="md:ml-64 min-h-screen p-4 md:p-8 pt-16 md:pt-8">
         {children}
       </main>
-    </>
+    </LanguageProvider>
   );
 }

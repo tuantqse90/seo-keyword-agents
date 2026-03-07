@@ -9,7 +9,7 @@ import OutlineView from "@/components/content/OutlineView";
 import MetaPreview from "@/components/content/MetaPreview";
 import LsiKeywords from "@/components/content/LsiKeywords";
 import { useSSE } from "@/hooks/useSSE";
-import { vi } from "@/i18n/vi";
+import { useLanguage } from "@/hooks/useLanguage";
 import { startAnalysis, getContentReport } from "@/lib/api";
 import type { ContentBriefData } from "@/lib/types";
 
@@ -33,6 +33,7 @@ function EeatSignals({ signals }: { signals: any }) {
 }
 
 export default function ContentPage() {
+  const { t: vi } = useLanguage();
   const { content, isStreaming, error, reportId, startStream } = useSSE();
   const [brief, setBrief] = useState<ContentBriefData | null>(null);
   const [lastQuery, setLastQuery] = useState<string>("");

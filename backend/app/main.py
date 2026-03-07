@@ -12,7 +12,7 @@ from starlette.responses import Response
 from app.config import settings
 from app.database import async_session, engine
 from app.models.report import Report, ReportStatus
-from app.routers import projects, keywords, competitor, content, audit, workflows, reports, schedules, auth, analytics
+from app.routers import projects, keywords, competitor, content, audit, workflows, reports, schedules, auth, analytics, admin
 from app.services.scheduler_service import start_scheduler, stop_scheduler
 from app.services.stream_manager import start_cleanup, stop_cleanup
 from app.middleware.logging_middleware import setup_logging
@@ -108,6 +108,7 @@ app.include_router(reports.router)
 app.include_router(schedules.router)
 app.include_router(auth.router)
 app.include_router(analytics.router)
+app.include_router(admin.router)
 
 
 @app.get("/api/health")

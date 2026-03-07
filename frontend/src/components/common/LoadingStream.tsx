@@ -1,7 +1,7 @@
 "use client";
 
 import ReactMarkdown from "react-markdown";
-import { vi } from "@/i18n/vi";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface LoadingStreamProps {
   content: string;
@@ -11,6 +11,7 @@ interface LoadingStreamProps {
 }
 
 export default function LoadingStream({ content, isStreaming, error, onRetry }: LoadingStreamProps) {
+  const { t: vi } = useLanguage();
   if (error) {
     return (
       <div className="card border-red-200 bg-red-50">

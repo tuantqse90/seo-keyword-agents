@@ -1,9 +1,10 @@
 "use client";
 
-import { vi } from "@/i18n/vi";
+import { useLanguage } from "@/hooks/useLanguage";
 import type { CompetitorData } from "@/lib/types";
 
 export default function CompetitorCard({ competitor }: { competitor: CompetitorData }) {
+  const { t: vi } = useLanguage();
   const toArray = (val: any): string[] => {
     if (Array.isArray(val)) return val;
     if (val && typeof val === "object" && Array.isArray(val.items)) return val.items;

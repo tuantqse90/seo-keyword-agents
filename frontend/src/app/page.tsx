@@ -4,30 +4,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import Header from "@/components/layout/Header";
-import { vi } from "@/i18n/vi";
+import { useLanguage } from "@/hooks/useLanguage";
 import { getReports, getReportStats } from "@/lib/api";
 import { MODULE_COLORS, STATUS_COLORS } from "@/lib/constants";
 import type { ReportListItem } from "@/lib/types";
 
-const quickActions = [
-  { href: "/keywords", label: vi.nav.keywords, desc: vi.keywords.description, color: "border-blue-200 hover:border-blue-400" },
-  { href: "/competitor", label: vi.nav.competitor, desc: vi.competitor.description, color: "border-purple-200 hover:border-purple-400" },
-  { href: "/content", label: vi.nav.content, desc: vi.content.description, color: "border-green-200 hover:border-green-400" },
-  { href: "/audit", label: vi.nav.audit, desc: vi.audit.description, color: "border-orange-200 hover:border-orange-400" },
-  { href: "/full", label: vi.workflows.full.title, desc: vi.workflows.full.description, color: "border-indigo-200 hover:border-indigo-400" },
-  { href: "/strategy", label: vi.workflows.strategy.title, desc: vi.workflows.strategy.description, color: "border-teal-200 hover:border-teal-400" },
-];
-
 const PIE_COLORS = ["#3b82f6", "#8b5cf6", "#22c55e", "#f97316", "#6366f1", "#14b8a6", "#ef4444"];
-const MODULE_LABELS: Record<string, string> = {
-  keywords: "Tu khoa",
-  competitor: "Doi thu",
-  content: "Noi dung",
-  audit: "Kiem tra",
-  full: "Day du",
-  strategy: "Chien luoc",
-  fix: "Sua nhanh",
-};
 
 interface Stats {
   total: number;
@@ -37,6 +19,26 @@ interface Stats {
 }
 
 export default function DashboardPage() {
+  const { t: vi } = useLanguage();
+
+  const quickActions = [
+    { href: "/keywords", label: vi.nav.keywords, desc: vi.keywords.description, color: "border-blue-200 hover:border-blue-400" },
+    { href: "/competitor", label: vi.nav.competitor, desc: vi.competitor.description, color: "border-purple-200 hover:border-purple-400" },
+    { href: "/content", label: vi.nav.content, desc: vi.content.description, color: "border-green-200 hover:border-green-400" },
+    { href: "/audit", label: vi.nav.audit, desc: vi.audit.description, color: "border-orange-200 hover:border-orange-400" },
+    { href: "/full", label: vi.workflows.full.title, desc: vi.workflows.full.description, color: "border-indigo-200 hover:border-indigo-400" },
+    { href: "/strategy", label: vi.workflows.strategy.title, desc: vi.workflows.strategy.description, color: "border-teal-200 hover:border-teal-400" },
+  ];
+
+  const MODULE_LABELS: Record<string, string> = {
+    keywords: vi.nav.keywords,
+    competitor: vi.nav.competitor,
+    content: vi.nav.content,
+    audit: vi.nav.audit,
+    full: vi.nav.full,
+    strategy: vi.nav.strategy,
+    fix: vi.nav.fix,
+  };
   const [reports, setReports] = useState<ReportListItem[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
 
@@ -70,15 +72,15 @@ export default function DashboardPage() {
           <p className="text-3xl font-bold text-primary-700 dark:text-primary-400 mt-1">{stats?.total || 0}</p>
         </div>
         <div className="card">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Hoan thanh</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{vi.common.status.completed}</p>
           <p className="text-3xl font-bold text-green-600 mt-1">{stats?.by_status?.completed || 0}</p>
         </div>
         <div className="card">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Dang xu ly</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{vi.common.status.streaming}</p>
           <p className="text-3xl font-bold text-yellow-600 mt-1">{(stats?.by_status?.streaming || 0) + (stats?.by_status?.pending || 0)}</p>
         </div>
         <div className="card">
-          <p className="text-sm text-gray-500 dark:text-gray-400">That bai</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{vi.common.status.failed}</p>
           <p className="text-3xl font-bold text-red-600 mt-1">{stats?.by_status?.failed || 0}</p>
         </div>
       </div>
@@ -89,14 +91,14 @@ export default function DashboardPage() {
           {/* Daily trend */}
           {stats.daily.length > 0 && (
             <div className="card">
-              <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">Bao cao theo ngay</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">{vi.dashboard.dailyTrend}</h3>
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={stats.daily}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis dataKey="date" tick={{ fontSize: 12 }} tickFormatter={(v) => v.slice(5)} />
                   <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
                   <Tooltip />
-                  <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Bao cao" />
+                  <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} name={vi.dashboard.reports} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -105,7 +107,7 @@ export default function DashboardPage() {
           {/* Module distribution */}
           {moduleData.length > 0 && (
             <div className="card">
-              <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">Phan bo theo module</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">{vi.dashboard.moduleDistribution}</h3>
               <ResponsiveContainer width="100%" height={250}>
                 <PieChart>
                   <Pie

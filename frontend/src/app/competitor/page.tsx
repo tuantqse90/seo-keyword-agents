@@ -8,11 +8,12 @@ import ExportButton from "@/components/common/ExportButton";
 import CompetitorCard from "@/components/competitor/CompetitorCard";
 import GapMatrix from "@/components/competitor/GapMatrix";
 import { useSSE } from "@/hooks/useSSE";
-import { vi } from "@/i18n/vi";
+import { useLanguage } from "@/hooks/useLanguage";
 import { startAnalysis, getCompetitorReport } from "@/lib/api";
 import type { CompetitorData, KeywordGapData } from "@/lib/types";
 
 export default function CompetitorPage() {
+  const { t: vi } = useLanguage();
   const { content, isStreaming, error, reportId, startStream } = useSSE();
   const [competitors, setCompetitors] = useState<CompetitorData[]>([]);
   const [gaps, setGaps] = useState<KeywordGapData[]>([]);

@@ -105,7 +105,38 @@ export const vi = {
     totalReports: "Tong bao cao",
     recentActivity: "Hoat dong gan day",
     quickActions: "Hanh dong nhanh",
+    dailyTrend: "Bao cao theo ngay",
+    moduleDistribution: "Phan bo theo module",
+    reports: "Bao cao",
+  },
+  admin: {
+    title: "Quan ly nguoi dung",
+    users: "Nguoi dung",
+    addUser: "Them nguoi dung",
+    editUser: "Chinh sua",
+    deleteUser: "Xoa nguoi dung",
+    confirmDelete: "Ban co chac muon xoa nguoi dung nay?",
+    name: "Ten",
+    email: "Email",
+    role: "Vai tro",
+    status: "Trang thai",
+    active: "Hoat dong",
+    inactive: "Vo hieu hoa",
+    admin: "Admin",
+    user: "User",
+    actions: "Hanh dong",
+    search: "Tim nguoi dung...",
+    noUsers: "Khong co nguoi dung nao",
+    created: "Ngay tao",
+    password: "Mat khau",
+    save: "Luu",
+    cancel: "Huy",
   },
 } as const;
 
-export type I18nKey = typeof vi;
+// Use DeepString to widen literal types so en.ts can have different string values
+type DeepString<T> = {
+  [K in keyof T]: T[K] extends string ? string : DeepString<T[K]>;
+};
+
+export type I18nKey = DeepString<typeof vi>;

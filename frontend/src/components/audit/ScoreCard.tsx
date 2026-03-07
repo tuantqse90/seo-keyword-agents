@@ -1,9 +1,10 @@
 "use client";
 
-import { vi } from "@/i18n/vi";
+import { useLanguage } from "@/hooks/useLanguage";
 import type { AuditResultData } from "@/lib/types";
 
 export default function ScoreCard({ result }: { result: AuditResultData }) {
+  const { t: vi } = useLanguage();
   const score = result.overall_score ?? 0;
   const pct = score;
   const color = pct >= 80 ? "text-green-600" : pct >= 60 ? "text-yellow-600" : pct >= 40 ? "text-orange-600" : "text-red-600";

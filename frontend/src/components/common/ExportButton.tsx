@@ -1,13 +1,14 @@
 "use client";
 
 import { getExportUrl } from "@/lib/api";
-import { vi } from "@/i18n/vi";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface ExportButtonProps {
   reportId: string;
 }
 
 export default function ExportButton({ reportId }: ExportButtonProps) {
+  const { t: vi } = useLanguage();
   return (
     <div className="flex gap-2">
       <a

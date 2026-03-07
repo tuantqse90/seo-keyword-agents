@@ -2,10 +2,11 @@
 
 import DataTable from "@/components/common/DataTable";
 import ScoreBadge from "@/components/common/ScoreBadge";
-import { vi } from "@/i18n/vi";
+import { useLanguage } from "@/hooks/useLanguage";
 import type { KeywordData } from "@/lib/types";
 
 export default function KeywordTable({ keywords }: { keywords: KeywordData[] }) {
+  const { t: vi } = useLanguage();
   const columns = [
     {
       key: "keyword",

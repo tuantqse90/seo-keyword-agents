@@ -6,10 +6,11 @@ import UrlInput from "@/components/common/UrlInput";
 import LoadingStream from "@/components/common/LoadingStream";
 import ExportButton from "@/components/common/ExportButton";
 import { useSSE } from "@/hooks/useSSE";
-import { vi } from "@/i18n/vi";
+import { useLanguage } from "@/hooks/useLanguage";
 import { startWorkflow } from "@/lib/api";
 
 export default function FullPage() {
+  const { t: vi } = useLanguage();
   const { content, isStreaming, error, reportId, startStream } = useSSE();
 
   const handleSubmit = useCallback(async (query: string) => {

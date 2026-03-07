@@ -10,11 +10,12 @@ import IssueList from "@/components/audit/IssueList";
 import QuickWins from "@/components/audit/QuickWins";
 import TechChecklist from "@/components/audit/TechChecklist";
 import { useSSE } from "@/hooks/useSSE";
-import { vi } from "@/i18n/vi";
+import { useLanguage } from "@/hooks/useLanguage";
 import { startAnalysis, getAuditReport } from "@/lib/api";
 import type { AuditResultData } from "@/lib/types";
 
 export default function AuditPage() {
+  const { t: vi } = useLanguage();
   const { content, isStreaming, error, reportId, startStream } = useSSE();
   const [auditResult, setAuditResult] = useState<AuditResultData | null>(null);
   const [lastQuery, setLastQuery] = useState<string>("");

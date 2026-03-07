@@ -7,10 +7,11 @@ import Header from "@/components/layout/Header";
 import ExportButton from "@/components/common/ExportButton";
 import { getReport } from "@/lib/api";
 import { MODULE_COLORS, STATUS_COLORS } from "@/lib/constants";
-import { vi } from "@/i18n/vi";
+import { useLanguage } from "@/hooks/useLanguage";
 import type { Report } from "@/lib/types";
 
 export default function ReportDetailPage() {
+  const { t: vi } = useLanguage();
   const params = useParams();
   const [report, setReport] = useState<Report | null>(null);
   const [loading, setLoading] = useState(true);

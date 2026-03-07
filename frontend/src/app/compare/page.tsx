@@ -3,12 +3,13 @@
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import Header from "@/components/layout/Header";
-import { vi } from "@/i18n/vi";
+import { useLanguage } from "@/hooks/useLanguage";
 import { getReports, getReport } from "@/lib/api";
 import { MODULE_COLORS } from "@/lib/constants";
 import type { ReportListItem, Report } from "@/lib/types";
 
 export default function ComparePage() {
+  const { t: vi } = useLanguage();
   const [reports, setReports] = useState<ReportListItem[]>([]);
   const [leftId, setLeftId] = useState<string>("");
   const [rightId, setRightId] = useState<string>("");

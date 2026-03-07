@@ -48,6 +48,9 @@ jobs:
         working-directory: backend
         env:
           DATABASE_URL: postgresql+asyncpg://seo_user:seo_password@localhost:5432/seo_dashboard
+          JWT_SECRET: ci-test-secret-not-for-production
+          LLM_PROVIDER: deepseek
+          ENVIRONMENT: development
         run: pytest tests/ -v --tb=short
 
   frontend-build:

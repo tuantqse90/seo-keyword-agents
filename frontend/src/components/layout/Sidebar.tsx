@@ -3,29 +3,31 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { vi } from "@/i18n/vi";
 import clsx from "clsx";
 import ProjectSelector from "./ProjectSelector";
 import SearchModal from "@/components/common/SearchModal";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/hooks/useLanguage";
 
-const navItems = [
-  { href: "/", label: vi.nav.dashboard, icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" },
-  { href: "/keywords", label: vi.nav.keywords, icon: "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" },
-  { href: "/competitor", label: vi.nav.competitor, icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" },
-  { href: "/content", label: vi.nav.content, icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" },
-  { href: "/audit", label: vi.nav.audit, icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" },
-  { type: "divider" as const },
-  { href: "/full", label: vi.nav.full, icon: "M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" },
-  { href: "/strategy", label: vi.nav.strategy, icon: "M13 10V3L4 14h7v7l9-11h-7z" },
-  { href: "/fix", label: vi.nav.fix, icon: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" },
-  { type: "divider" as const },
-  { href: "/reports", label: vi.nav.reports, icon: "M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" },
-  { href: "/compare", label: vi.nav.compare, icon: "M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" },
-  { href: "/schedules", label: vi.nav.schedules, icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" },
-  { href: "/analytics", label: "Thong ke", icon: "M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" },
-];
+const NAV_ICONS = {
+  dashboard: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6",
+  keywords: "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z",
+  competitor: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z",
+  content: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",
+  audit: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4",
+  full: "M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z",
+  strategy: "M13 10V3L4 14h7v7l9-11h-7z",
+  fix: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z",
+  reports: "M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",
+  compare: "M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4",
+  schedules: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
+  analytics: "M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z",
+  admin: "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z",
+};
+
+const ANALYTICS_LABEL: Record<string, string> = { vi: "Thong ke", en: "Analytics" };
+const ADMIN_LABEL: Record<string, string> = { vi: "Quan ly", en: "Admin" };
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -33,7 +35,29 @@ export default function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const { isDark, toggle } = useTheme();
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
+  const { lang, setLang, t } = useLanguage();
+
+  const navItems = [
+    { href: "/", label: t.nav.dashboard, icon: NAV_ICONS.dashboard },
+    { href: "/keywords", label: t.nav.keywords, icon: NAV_ICONS.keywords },
+    { href: "/competitor", label: t.nav.competitor, icon: NAV_ICONS.competitor },
+    { href: "/content", label: t.nav.content, icon: NAV_ICONS.content },
+    { href: "/audit", label: t.nav.audit, icon: NAV_ICONS.audit },
+    { type: "divider" as const },
+    { href: "/full", label: t.nav.full, icon: NAV_ICONS.full },
+    { href: "/strategy", label: t.nav.strategy, icon: NAV_ICONS.strategy },
+    { href: "/fix", label: t.nav.fix, icon: NAV_ICONS.fix },
+    { type: "divider" as const },
+    { href: "/reports", label: t.nav.reports, icon: NAV_ICONS.reports },
+    { href: "/compare", label: t.nav.compare, icon: NAV_ICONS.compare },
+    { href: "/schedules", label: t.nav.schedules, icon: NAV_ICONS.schedules },
+    { href: "/analytics", label: ANALYTICS_LABEL[lang], icon: NAV_ICONS.analytics },
+    ...(isAdmin ? [
+      { type: "divider" as const },
+      { href: "/admin", label: ADMIN_LABEL[lang], icon: NAV_ICONS.admin },
+    ] : []),
+  ];
 
   // Ctrl+K shortcut
   useEffect(() => {
@@ -51,10 +75,17 @@ export default function Sidebar() {
     <>
       <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-primary-700 dark:text-primary-400">{vi.app.title}</h1>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{vi.app.subtitle}</p>
+          <h1 className="text-xl font-bold text-primary-700 dark:text-primary-400">{t.app.title}</h1>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t.app.subtitle}</p>
         </div>
         <div className="flex items-center gap-1">
+          <button
+            onClick={() => setLang(lang === "vi" ? "en" : "vi")}
+            className="p-2 rounded-lg text-xs font-bold text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 transition-colors"
+            title={lang === "vi" ? "Switch to English" : "Chuyen sang Tieng Viet"}
+          >
+            {lang === "vi" ? "EN" : "VI"}
+          </button>
           <button
             onClick={toggle}
             className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 transition-colors"
@@ -163,7 +194,7 @@ export default function Sidebar() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
           </svg>
         </button>
-        <h1 className="ml-3 text-lg font-bold text-primary-700 dark:text-primary-400">{vi.app.title}</h1>
+        <h1 className="ml-3 text-lg font-bold text-primary-700 dark:text-primary-400">{t.app.title}</h1>
       </div>
 
       {/* Mobile overlay */}

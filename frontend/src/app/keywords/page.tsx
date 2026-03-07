@@ -9,11 +9,12 @@ import KeywordTable from "@/components/keywords/KeywordTable";
 import ClusterView from "@/components/keywords/ClusterView";
 import GoldenKeywords from "@/components/keywords/GoldenKeywords";
 import { useSSE } from "@/hooks/useSSE";
-import { vi } from "@/i18n/vi";
+import { useLanguage } from "@/hooks/useLanguage";
 import { startAnalysis, getKeywordReport } from "@/lib/api";
 import type { KeywordData } from "@/lib/types";
 
 export default function KeywordsPage() {
+  const { t: vi } = useLanguage();
   const { content, isStreaming, error, reportId, startStream } = useSSE();
   const [keywords, setKeywords] = useState<KeywordData[]>([]);
   const [loading, setLoading] = useState(false);

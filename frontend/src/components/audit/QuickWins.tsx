@@ -1,6 +1,6 @@
 "use client";
 
-import { vi } from "@/i18n/vi";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface QuickWin {
   title: string;
@@ -9,6 +9,7 @@ interface QuickWin {
 }
 
 export default function QuickWins({ wins }: { wins: QuickWin[] | any | null }) {
+  const { t: vi } = useLanguage();
   const items: QuickWin[] = Array.isArray(wins) ? wins :
     (wins && typeof wins === "object" && Array.isArray(wins.items)) ? wins.items : [];
   if (!items.length) return null;

@@ -3,13 +3,14 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Header from "@/components/layout/Header";
-import { vi } from "@/i18n/vi";
+import { useLanguage } from "@/hooks/useLanguage";
 import { useRouter } from "next/navigation";
 import { getReports, deleteReport, retryReport } from "@/lib/api";
 import { MODULE_COLORS, STATUS_COLORS } from "@/lib/constants";
 import type { ReportListItem } from "@/lib/types";
 
 export default function ReportsPage() {
+  const { t: vi } = useLanguage();
   const router = useRouter();
   const [reports, setReports] = useState<ReportListItem[]>([]);
   const [filter, setFilter] = useState<string>("");

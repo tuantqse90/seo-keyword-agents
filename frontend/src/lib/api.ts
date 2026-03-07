@@ -150,6 +150,41 @@ export const getTopQueries = (days?: number) =>
 export const getModuleSuccessRates = (days?: number) =>
   fetchApi<any>(`/api/analytics/module-success-rates${days ? `?days=${days}` : ""}`);
 
+// Admin
+export interface AdminUser {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface AdminUserList {
+  users: AdminUser[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export const getAdminUsers = (params?: { page?: number; limit?: number; search?: string }) => {
+  const qs = new URLSearchParams();
+  if (params?.page) qs.set("page", String(params.page));
+  if (params?.limit) qs.set("limit", String(params.limit));
+  if (params?.search) qs.set("search", params.search);
+  const q = qs.toString();
+  return fetchApi<AdminUserList>(`/api/admin/users${q ? `?${q}` : ""}`);
+};
+
+export const createAdminUser = (data: { email: string; password: string; name: string; role: string }) =>
+  fetchApi<AdminUser>("/api/admin/users", { method: "POST", body: JSON.stringify(data) });
+
+export const updateAdminUser = (id: string, data: { name?: string; role?: string; is_active?: boolean }) =>
+  fetchApi<AdminUser>(`/api/admin/users/${id}`, { method: "PUT", body: JSON.stringify(data) });
+
+export const deleteAdminUser = (id: string) =>
+  fetchApi<{ message: string }>(`/api/admin/users/${id}`, { method: "DELETE" });
+
 // Export
 export const getExportUrl = (reportId: string, format: "csv" | "pdf") =>
   `${API_BASE}/api/reports/${reportId}/export/${format}`;
