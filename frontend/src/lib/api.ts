@@ -136,6 +136,20 @@ export const updateSchedule = (id: string, data: { interval_hours?: number; is_a
 export const deleteSchedule = (id: string) =>
   fetch(`${API_BASE}/api/schedules/${id}`, { method: "DELETE" });
 
+// Analytics
+export const getAnalyticsOverview = (days?: number) =>
+  fetchApi<any>(`/api/analytics/overview${days ? `?days=${days}` : ""}`);
+export const getPopularModules = (days?: number) =>
+  fetchApi<any>(`/api/analytics/popular-modules${days ? `?days=${days}` : ""}`);
+export const getDailyTrend = (days?: number) =>
+  fetchApi<any>(`/api/analytics/daily-trend${days ? `?days=${days}` : ""}`);
+export const getHourlyHeatmap = (days?: number) =>
+  fetchApi<any>(`/api/analytics/hourly-heatmap${days ? `?days=${days}` : ""}`);
+export const getTopQueries = (days?: number) =>
+  fetchApi<any>(`/api/analytics/top-queries${days ? `?days=${days}` : ""}`);
+export const getModuleSuccessRates = (days?: number) =>
+  fetchApi<any>(`/api/analytics/module-success-rates${days ? `?days=${days}` : ""}`);
+
 // Export
 export const getExportUrl = (reportId: string, format: "csv" | "pdf") =>
   `${API_BASE}/api/reports/${reportId}/export/${format}`;

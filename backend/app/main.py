@@ -12,7 +12,7 @@ from starlette.responses import Response
 from app.config import settings
 from app.database import async_session, engine
 from app.models.report import Report, ReportStatus
-from app.routers import projects, keywords, competitor, content, audit, workflows, reports, schedules, auth
+from app.routers import projects, keywords, competitor, content, audit, workflows, reports, schedules, auth, analytics
 from app.services.scheduler_service import start_scheduler, stop_scheduler
 from app.services.stream_manager import start_cleanup, stop_cleanup
 from app.middleware.logging_middleware import setup_logging
@@ -43,7 +43,14 @@ async def lifespan(app: FastAPI):
     stop_scheduler()
 
 
-app = FastAPI(title="SEO Dashboard API", version="0.1.0", lifespan=lifespan)
+app = FastAPI(
+    title="SEO Dashboard API",
+    version="0.1.0",
+    description="API cho phan tich SEO thong minh — Keywords, Competitor, Content, Audit",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    lifespan=lifespan,
+)
 
 # CORS middleware — origins configurable via CORS_ORIGINS env var
 app.add_middleware(
@@ -100,6 +107,7 @@ app.include_router(workflows.router)
 app.include_router(reports.router)
 app.include_router(schedules.router)
 app.include_router(auth.router)
+app.include_router(analytics.router)
 
 
 @app.get("/api/health")

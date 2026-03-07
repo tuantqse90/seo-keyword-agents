@@ -48,6 +48,13 @@ class Settings(BaseSettings):
     # Environment: "development" or "production"
     environment: str = "development"
 
+    # Webhooks (Slack/Discord)
+    webhook_url: str = ""
+
+    # PDF branding
+    brand_name: str = "SEO Dashboard"
+    brand_color: str = "#2563eb"
+
     backend_host: str = "0.0.0.0"
     backend_port: int = 8000
 

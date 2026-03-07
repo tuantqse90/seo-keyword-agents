@@ -39,14 +39,15 @@ async def _monitor_and_notify(report_id: str, module: str, query: str):
 
 async def _run_scheduled_analysis(schedule: Schedule) -> str | None:
     """Trigger an analysis for a due schedule. Returns report_id."""
+    from app.services.stream_manager import create_stream
+
     module = schedule.module.value
     query = schedule.query
     project_id = schedule.project_id
 
     try:
         if module in ("full", "strategy", "fix"):
-            from app.routers import workflows
-            from app.models.report import Report, ReportStatus
+            from app.routers.workflows import _run_workflow
             async with async_session() as db:
                 new_report = Report(
                     module=schedule.module, input_query=query,
@@ -56,30 +57,33 @@ async def _run_scheduled_analysis(schedule: Schedule) -> str | None:
                 await db.commit()
                 await db.refresh(new_report)
                 rid = str(new_report.id)
-                workflows._streams[rid] = asyncio.Queue()
-                asyncio.create_task(workflows._run_workflow(rid, query, module))
+                create_stream(rid)
+                asyncio.create_task(_run_workflow(rid, query, module))
                 logger.info(f"Scheduled workflow {module} started: {rid}")
                 return rid
         else:
-            from app.routers import keywords, competitor, content, audit
+            from app.routers.keywords import _run_analysis as kw_run
+            from app.routers.competitor import _run_analysis as comp_run
+            from app.routers.content import _run_analysis as content_run
+            from app.routers.audit import _run_analysis as audit_run
             from app.services.keyword_service import create_keyword_report
             from app.services.competitor_service import create_competitor_report
             from app.services.content_service import create_content_report
             from app.services.audit_service import create_audit_report
 
             module_map = {
-                "keywords": (create_keyword_report, keywords._run_analysis, keywords._streams),
-                "competitor": (create_competitor_report, competitor._run_analysis, competitor._streams),
-                "content": (create_content_report, content._run_analysis, content._streams),
-                "audit": (create_audit_report, audit._run_analysis, audit._streams),
+                "keywords": (create_keyword_report, kw_run),
+                "competitor": (create_competitor_report, comp_run),
+                "content": (create_content_report, content_run),
+                "audit": (create_audit_report, audit_run),
             }
 
             if module in module_map:
-                create_fn, run_fn, streams = module_map[module]
+                create_fn, run_fn = module_map[module]
                 async with async_session() as db:
                     new_report = await create_fn(db, query, project_id)
                     rid = str(new_report.id)
-                    streams[rid] = asyncio.Queue()
+                    create_stream(rid)
                     asyncio.create_task(run_fn(rid, query))
                     logger.info(f"Scheduled analysis {module} started: {rid}")
                     return rid

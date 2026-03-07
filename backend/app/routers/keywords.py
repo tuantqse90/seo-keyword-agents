@@ -16,6 +16,7 @@ from app.services.claude_client import stream_claude_response
 from app.services.prompt_builder import build_keyword_prompt
 from app.services.auth_service import require_auth
 from app.services.stream_manager import create_stream, get_stream, remove_stream
+from app.services.webhook_service import notify_report_completed, notify_report_failed
 
 router = APIRouter(prefix="/api/keywords", tags=["keywords"])
 
@@ -58,10 +59,12 @@ async def _run_analysis(report_id: str, query: str):
             await save_keyword_results(db, uuid.UUID(report_id), full_text)
 
         await queue.put({"event": "done", "data": report_id})
+        await notify_report_completed("keywords", query, report_id)
     except Exception as e:
         async with async_session() as db:
             await mark_report_failed(db, uuid.UUID(report_id), str(e))
         await queue.put({"event": "error", "data": str(e)})
+        await notify_report_failed("keywords", query, str(e))
     finally:
         await queue.put(None)  # Signal end
 

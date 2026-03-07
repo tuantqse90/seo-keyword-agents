@@ -16,6 +16,7 @@ from app.services.content_service import save_content_results
 from app.services.audit_service import save_audit_results
 from app.services.auth_service import require_auth
 from app.services.stream_manager import create_stream, get_stream, remove_stream
+from app.services.webhook_service import notify_report_completed, notify_report_failed
 from app.models.user import User
 
 router = APIRouter(prefix="/api/workflows", tags=["workflows"])
@@ -103,10 +104,12 @@ async def _run_workflow(report_id: str, query: str, workflow_type: str):
                 await db.commit()
 
         await queue.put({"event": "done", "data": report_id})
+        await notify_report_completed(workflow_type, query, report_id)
     except Exception as e:
         async with async_session() as db:
             await mark_report_failed(db, uuid.UUID(report_id), str(e))
         await queue.put({"event": "error", "data": str(e)})
+        await notify_report_failed(workflow_type, query, str(e))
     finally:
         await queue.put(None)
 
